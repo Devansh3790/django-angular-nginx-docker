@@ -1,0 +1,65 @@
+version: '3.2'
+
+networks: 
+  nginx_network:
+    driver: bridge
+  database_network:
+    driver: bridge
+
+volumes:
+  prod_database_data: {}
+  prod_database_data_backups: {}
+
+services:
+  database:
+    build:
+      context: .
+      dockerfile: ./compose/database/Dockerfile
+    restart: always
+    image: lims_prod_database
+    volumes:
+      - prod_database_data:/var/lib/postgresql/data
+      - prod_database_data_backups:/backups
+    env_file:
+      - ./.envs/.prod/.database
+    networks:
+      - database_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./compose/backend/Dockerfile
+      args: 
+        - ENV=prod
+    image: lims_prod_backend:1.0
+    depends_on:
+      - database
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./.envs/.prod/.backend
+      - ./.envs/.prod/.database
+    networks: 
+      - nginx_network
+      - database_network
+    command: /start
+
+  nginx:
+    build: 
+      context: .
+      dockerfile: ./compose/nginx/Dockerfile
+    image: lims_prod_nginx:1.0
+    volumes: 
+      - ./nginx/etc/conf.d/:/etc/nginx/conf.d/
+      - ./backend:/app
+      - ./backend/static:/static
+      - ./backend/media:/media
+      - ./frontend:/app
+    ports:
+      - "8000:80"
+      - "4200:81"
+    depends_on:
+      - backend
+    networks: 
+      - nginx_network
+      - database_network

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+
+# ng build --watch
+
+# function start_local() {
+#     #local server here.
+#     ng serve --host 0.0.0.0 --port 4200
+# }
+
+# function start_production() {
+#     # production server here
+#     npm run build --output-path=./dist/out
+# }
+
+
+# if [ ${ENVIRONMENT} == 'local' ]; then
+#     # use development server
+#     start_local
+# else
+#     # use production server
+#     start_production
+# fi
+
+ng serve --host 0.0.0.0 --port 4200

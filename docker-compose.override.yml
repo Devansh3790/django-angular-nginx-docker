@@ -1,0 +1,47 @@
+version: '3.3'
+
+networks: 
+  nginx_network:
+    driver: bridge
+  database_network:
+    driver: bridge
+
+services:
+
+  database:
+    image: lims_local_database
+    env_file:
+      - ./.envs/.local/.database
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./compose/backend/Dockerfile
+    image: lims_local_backend
+    depends_on:
+      - database
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./.envs/.local/.backend
+      - ./.envs/.local/.database
+    networks: 
+      - database_network
+    ports: 
+      - 8000:8000
+    command: /start
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./compose/frontend/Dockerfile
+    image: lims_local_frontend
+    depends_on:
+      - backend
+    env_file:
+      - ./.envs/.local/.frontend
+    volumes:
+      - ./frontend:/app
+    ports: 
+      - 4200:4200
+    command: /start
